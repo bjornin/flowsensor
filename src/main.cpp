@@ -11,23 +11,26 @@
 #define APPSK  "bensin"
 #endif
 
+#define INPUT_PIN 2
+
 /* Set these to your desired credentials. */
 const char *ssid = APSSID;
 const char *password = APPSK;
 
 ESP8266WebServer server(80);
+volatile int count;
+volatile int frequency;
 
 /* Just a little test message.  Go to http://192.168.4.1 in a web browser
    connected to this access point to see it.
 */
 void handleRoot() {
-  server.send(200, "text/html", "<h1>You are connected</h1>");
+  char content[50];
+  sprintf(content, "Frequency: %d", frequency);
+  server.send(200, "text/html", content);
 }
-ReactESP app([] () {
 
-  delay(1000);
-  Serial.begin(115200);
-  Serial.println();
+void setup_network() {
   Serial.print("Configuring access point...");
   /* You can remove the password parameter if you want the AP to be open. */
   WiFi.softAP(ssid, password);
@@ -35,8 +38,31 @@ ReactESP app([] () {
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
+}
+
+void IncreaseCount() {
+  Serial.print("interrupt");
+  count++;
+}
+
+void GetCount() {
+  noInterrupts();
+  frequency = count;
+  count = 0;
+  interrupts();
+  Serial.print(frequency);
+}
+
+ReactESP app([] () {
+  Serial.begin(115200);
+  Serial.println();
+  setup_network();
   server.on("/", handleRoot);
   server.begin();
   Serial.println("HTTP server started");
-  server.handleClient();
+  app.onRepeat(1, [](){
+    server.handleClient();
+  });
+  app.onInterrupt(INPUT_PIN, RISING, IncreaseCount);
+  app.onRepeat(1000, GetCount);
 });
