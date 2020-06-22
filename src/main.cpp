@@ -26,7 +26,7 @@ volatile int frequency;
 */
 void handleRoot() {
   char content[50];
-  sprintf(content, "Frequency: %d", frequency);
+  sprintf(content, "<h1>Frequency: %d</h1>", frequency);
   server.send(200, "text/html", content);
 }
 
@@ -41,7 +41,6 @@ void setup_network() {
 }
 
 void IncreaseCount() {
-  Serial.print("interrupt");
   count++;
 }
 
@@ -50,7 +49,7 @@ void GetCount() {
   frequency = count;
   count = 0;
   interrupts();
-  Serial.print(frequency);
+  Serial.println(frequency); // Debug print instead
 }
 
 ReactESP app([] () {
