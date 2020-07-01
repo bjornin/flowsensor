@@ -46,13 +46,13 @@ const char html[] = R"html(
 </html>
 )html";
 
-void handleRoot() {
+void HandleRoot() {
   char content[175];
   sprintf(content, html, (int)lph, (int)(lph*100)%100, (int)total_l, (int)(total_l*100)%100);
   server.send(200, "text/html", content);
 }
 
-void setup_network() {
+void SetupNetwork() {
   Serial.print("Configuring access point...");
   WiFi.softAP(ssid, password);
   IPAddress myIP = WiFi.softAPIP();
@@ -90,7 +90,7 @@ void PrintInfo() {
   Serial.println(buf);
 }
 
-void setup_OTA() {
+void SetupOTA() {
   ArduinoOTA.onStart([](){
     Serial.println("OTA start");
   });
@@ -116,9 +116,9 @@ void setup_OTA() {
 ReactESP app([] () {
   Serial.begin(115200);
   Serial.println();
-  setup_network();
-  setup_OTA();
-  server.on("/", handleRoot);
+  SetupNetwork();
+  SetupOTA();
+  server.on("/", HandleRoot);
   server.begin();
   Serial.println("HTTP server started");
   samples.resize(num_samples, 0);
