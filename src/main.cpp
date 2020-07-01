@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <ReactESP.h>
 
 #include <ESP8266WiFi.h>
@@ -15,6 +16,8 @@
 
 #define INPUT_PIN 2
 #define PULSES_PER_LITRE 2500
+
+extern ReactESP app;
 
 /* Set these to your desired credentials. */
 const char *ssid = APSSID;
@@ -87,10 +90,34 @@ void PrintInfo() {
   Serial.println(buf);
 }
 
+void setup_OTA() {
+  ArduinoOTA.onStart([](){
+    Serial.println("OTA start");
+  });
+  ArduinoOTA.onEnd([](){
+    Serial.println("OTA end");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total){
+    char buf[50];
+    sprintf(buf, "OTA progress: %u%%\r", (progress / total) * 100);
+    Serial.println(buf);
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    char buf[50];
+    sprintf(buf, "OTA error: %u", error);
+    Serial.println(buf);
+  });
+  ArduinoOTA.begin();
+  app.onRepeat(20, [](){
+    ArduinoOTA.handle();
+  });
+}
+
 ReactESP app([] () {
   Serial.begin(115200);
   Serial.println();
   setup_network();
+  setup_OTA();
   server.on("/", handleRoot);
   server.begin();
   Serial.println("HTTP server started");
